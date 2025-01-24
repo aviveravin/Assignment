@@ -12,6 +12,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 object AppModule {
     private lateinit var appDatabase: AppDatabase
     private lateinit var cachedItemDao: CachedItemDao
+    private lateinit var networkUtils: NetWorkUtils
 
     private val apiService: ApiService by lazy {
         Retrofit.Builder()
@@ -24,6 +25,7 @@ object AppModule {
     fun initialize(context: Context) {
         appDatabase = AppDatabase.getInstance(context)
         cachedItemDao = appDatabase.cachedItemDao()
+        networkUtils = NetWorkUtils
     }
 
     fun provideApiService(): ApiService = apiService
@@ -35,10 +37,19 @@ object AppModule {
         return cachedItemDao
     }
 
+    fun provideNetworkUtils(): NetWorkUtils {
+        if (!this::networkUtils.isInitialized) {
+            throw IllegalStateException("AppModule is not initialized. Call initialize() first.")
+        }
+        return networkUtils
+    }
+
     fun provideItemRepository(): JarRepository {
         return JarRepositoryImpl(provideApiService(), provideCachedItemDao())
     }
 }
+
+
 
 
 

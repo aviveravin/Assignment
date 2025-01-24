@@ -1,9 +1,12 @@
 package com.myjar.jarassignment.ui.vm
 
+import android.content.Context
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.myjar.jarassignment.AppModule
+import com.myjar.jarassignment.NetWorkUtils
 import com.myjar.jarassignment.data.local.CachedItemDao
 import com.myjar.jarassignment.data.model.ComputerItem
 import com.myjar.jarassignment.data.repository.JarRepository
@@ -13,7 +16,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class JarViewModel(
-    private val repository: JarRepository
+    private val repository: JarRepository,
+    private val networkUtils: NetWorkUtils
 ) : ViewModel() {
 
     private val _listStringData = MutableStateFlow<List<ComputerItem>>(emptyList())
@@ -22,21 +26,17 @@ class JarViewModel(
     private val _isCached = MutableStateFlow(false)
     val isCached: StateFlow<Boolean> = _isCached
 
-    fun fetchData() {
+    @RequiresApi(Build.VERSION_CODES.M)
+    fun fetchData(context: Context) {
         viewModelScope.launch {
-            try {
-                repository.fetchResults().collect { items ->
-                    _listStringData.value = items
-                    _isCached.value = items.isNotEmpty()
-                }
-            } catch (e: Exception) {
-                Log.e("JarViewModel", "Error fetching data: ${e.message}")
+            val isOnline = networkUtils.isOnline(context)
+            repository.fetchResults(isOnline).collect { items ->
+                _listStringData.value = items
+                _isCached.value = !isOnline
             }
         }
     }
-
-    private fun isOnline(): Boolean {
-
-        return true
-    }
 }
+
+
+

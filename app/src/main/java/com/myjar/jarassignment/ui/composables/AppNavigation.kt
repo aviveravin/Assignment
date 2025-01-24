@@ -64,6 +64,7 @@ fun ItemListScreen(
     navController: NavHostController
 ) {
     val items by viewModel.listStringData.collectAsState()
+    val isCached by viewModel.isCached.collectAsState()
     var searchQuery by remember {
         mutableStateOf("")
     }
@@ -93,6 +94,13 @@ fun ItemListScreen(
             label = { Text(text = "Search")},
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
         )
+
+        if (isCached) {
+            Text(
+                text = "You are viewing cached data",
+                color = Color.Red,
+            )
+        }
 
         LazyColumn(
             modifier = Modifier
