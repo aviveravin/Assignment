@@ -1,5 +1,6 @@
 package com.myjar.jarassignment.ui.composables
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -38,7 +40,9 @@ fun AppNavigation(
         composable("item_list") {
             ItemListScreen(
                 viewModel = viewModel,
-                onNavigateToDetail = { selectedItem -> navigate.value = selectedItem },
+                onNavigateToDetail = { selectedItem ->
+                    navController.navigate("item_detail/$selectedItem")
+                                     },
                 navigate = navigate,
                 navController = navController
             )
@@ -57,7 +61,11 @@ fun ItemListScreen(
     navigate: MutableState<String>,
     navController: NavHostController
 ) {
-    val items = viewModel.listStringData.collectAsState()
+    val items by viewModel.listStringData.collectAsState()
+
+    Log.d("checking itesm list", "ItemListScreen: $items")
+
+    Log.d("checking itesm list", "cheking navigate value: ${navigate.value}")
 
     if (navigate.value.isNotBlank()) {
         val currRoute = navController.currentDestination?.route.orEmpty()
@@ -70,7 +78,8 @@ fun ItemListScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        items(items.value) { item ->
+        items(items) { item ->
+            Log.d("checking in side lazy", "ItemListScreen: $items")
             ItemCard(
                 item = item,
                 onClick = { onNavigateToDetail(item.id) }
@@ -88,7 +97,7 @@ fun ItemCard(item: ComputerItem, onClick: () -> Unit) {
             .padding(8.dp)
             .clickable { onClick() }
     ) {
-        Text(text = item.name, fontWeight = FontWeight.Bold, color = Color.Transparent)
+        Text(text = item.name, fontWeight = FontWeight.Bold, color = Color.Black)
     }
 }
 
