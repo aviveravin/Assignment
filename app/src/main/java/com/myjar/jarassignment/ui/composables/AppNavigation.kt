@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -17,6 +18,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -62,10 +64,20 @@ fun ItemListScreen(
     navController: NavHostController
 ) {
     val items by viewModel.listStringData.collectAsState()
+    var searchQuery by remember {
+        mutableStateOf("")
+    }
+
+    val filteredItems = if (searchQuery.isEmpty()){
+        items
+    } else {
+        items.filter { it.id.contains(searchQuery, ignoreCase = true) ||
+                it.name.contains(searchQuery, ignoreCase = true) ||
+                it.data?.capacity?.contains(searchQuery, ignoreCase = true) == true
+        }
+    }
 
     Log.d("checking itesm list", "ItemListScreen: $items")
-
-    Log.d("checking itesm list", "cheking navigate value: ${navigate.value}")
 
     if (navigate.value.isNotBlank()) {
         val currRoute = navController.currentDestination?.route.orEmpty()
@@ -73,20 +85,31 @@ fun ItemListScreen(
             navController.navigate("item_detail/${navigate.value}")
         }
     }
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        items(items) { item ->
-            Log.d("checking in side lazy", "ItemListScreen: $items")
-            ItemCard(
-                item = item,
-                onClick = { onNavigateToDetail(item.id) }
-            )
-            Spacer(modifier = Modifier.height(8.dp))
+
+    Column(modifier = Modifier.fillMaxSize()){
+        OutlinedTextField(
+            value =searchQuery ,
+            onValueChange = {query -> searchQuery = query},
+            label = { Text(text = "Search")},
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+        )
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            items(filteredItems) { item ->
+                Log.d("checking in side lazy", "ItemListScreen: $items")
+                ItemCard(
+                    item = item,
+                    onClick = { onNavigateToDetail(item.id) }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
         }
     }
+
 }
 
 @Composable
